@@ -6,18 +6,30 @@ A GUI application for generating AI-powered videos using the Seedance API from B
 
 - Python 3.7 or higher
 - macOS, Windows, or Linux
-- Ark API key from ByteDance
+- Ark API key from ByteDance (get one at https://console.volcengine.com/ark)
 
 ## Installation
 
 1. Clone this repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Pikago-hub/seedance-1.0-pro-.git
 cd seedance_vidgen
 ```
 
-2. Create and activate a virtual environment:
+2. Install tkinter (required for GUI):
+
+```bash
+# On macOS with Homebrew:
+brew install python-tk@3.13
+
+# On Ubuntu/Debian:
+sudo apt-get install python3-tk
+
+# On Windows: tkinter is usually included with Python
+```
+
+3. Create and activate a virtual environment:
 
 ```bash
 python -m venv venv
@@ -29,13 +41,18 @@ source venv/bin/activate
 venv\Scripts\activate
 ```
 
-3. Install required packages:
+4. Install required packages:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Set up your API key:
+5. Set up your API key:
+   - Get your API key from https://console.volcengine.com/ark
+   - Add your Ark API key:
+   ```
+   ARK_API_KEY=your_api_key_here
+   ```
 
 ## Usage
 
