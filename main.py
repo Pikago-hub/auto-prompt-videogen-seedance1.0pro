@@ -31,17 +31,40 @@ class VideoGeneratorGUI:
         title_label = ttk.Label(main_frame, text="Seedance Video Generator", font=('Arial', 16, 'bold'))
         title_label.grid(row=0, column=0, columnspan=2, pady=10)
         
+        # Generation Mode Frame
+        mode_frame = ttk.LabelFrame(main_frame, text="Generation Mode", padding="10")
+        mode_frame.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=10)
+        
+        # Mode Selection
+        self.mode_var = tk.StringVar(value="text")
+        ttk.Radiobutton(mode_frame, text="Text-to-Video", variable=self.mode_var, value="text", command=self.on_mode_change).grid(row=0, column=0, sticky=tk.W)
+        ttk.Radiobutton(mode_frame, text="Image-to-Video", variable=self.mode_var, value="image", command=self.on_mode_change).grid(row=0, column=1, sticky=tk.W, padx=20)
+        
+        # Image URL Frame (initially hidden)
+        self.image_frame = ttk.LabelFrame(main_frame, text="First Frame Image", padding="10")
+        self.image_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=10)
+        self.image_frame.grid_remove()  # Hide initially
+        
+        # Image URL Entry
+        ttk.Label(self.image_frame, text="Image URL:").grid(row=0, column=0, sticky=tk.W)
+        self.image_url_var = tk.StringVar()
+        self.image_url_entry = ttk.Entry(self.image_frame, textvariable=self.image_url_var, width=50)
+        self.image_url_entry.grid(row=0, column=1, sticky=(tk.W, tk.E), padx=5)
+        ttk.Label(self.image_frame, text="(Paste your image URL here)", font=('Arial', 9, 'italic')).grid(row=1, column=1, sticky=tk.W, padx=5)
+        
         # Parameters Frame
         params_frame = ttk.LabelFrame(main_frame, text="Video Parameters", padding="10")
-        params_frame.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=10)
+        params_frame.grid(row=3, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=10)
         
         # Aspect Ratio
         ttk.Label(params_frame, text="Aspect Ratio:").grid(row=0, column=0, sticky=tk.W)
         self.ratio_var = tk.StringVar(value="16:9")
         ratio_frame = ttk.Frame(params_frame)
         ratio_frame.grid(row=0, column=1, sticky=tk.W)
-        ttk.Radiobutton(ratio_frame, text="16:9 (Landscape)", variable=self.ratio_var, value="16:9").pack(side=tk.LEFT)
-        ttk.Radiobutton(ratio_frame, text="9:16 (Portrait)", variable=self.ratio_var, value="9:16").pack(side=tk.LEFT, padx=10)
+        self.ratio_landscape = ttk.Radiobutton(ratio_frame, text="16:9 (Landscape)", variable=self.ratio_var, value="16:9")
+        self.ratio_landscape.pack(side=tk.LEFT)
+        self.ratio_portrait = ttk.Radiobutton(ratio_frame, text="9:16 (Portrait)", variable=self.ratio_var, value="9:16")
+        self.ratio_portrait.pack(side=tk.LEFT, padx=10)
         
         # Resolution
         ttk.Label(params_frame, text="Resolution:").grid(row=1, column=0, sticky=tk.W, pady=5)
@@ -61,7 +84,7 @@ class VideoGeneratorGUI:
         
         # Prompt Frame
         prompt_frame = ttk.LabelFrame(main_frame, text="Video Prompt", padding="10")
-        prompt_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=10)
+        prompt_frame.grid(row=4, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=10)
         
         # Prompt Text Area
         self.prompt_text = scrolledtext.ScrolledText(prompt_frame, wrap=tk.WORD, width=60, height=8)
@@ -69,7 +92,7 @@ class VideoGeneratorGUI:
         
         # Button Frame
         button_frame = ttk.Frame(main_frame)
-        button_frame.grid(row=3, column=0, columnspan=2, pady=10)
+        button_frame.grid(row=5, column=0, columnspan=2, pady=10)
         
         # Fix Prompt Button
         self.fix_prompt_button = ttk.Button(button_frame, text="Fix Prompt", command=self.fix_prompt)
@@ -81,7 +104,7 @@ class VideoGeneratorGUI:
         
         # Progress Frame
         progress_frame = ttk.Frame(main_frame)
-        progress_frame.grid(row=4, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=10)
+        progress_frame.grid(row=6, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=10)
         
         # Progress Bar
         self.progress_var = tk.DoubleVar()
@@ -94,7 +117,7 @@ class VideoGeneratorGUI:
         
         # Output Frame
         output_frame = ttk.LabelFrame(main_frame, text="Output Log", padding="10")
-        output_frame.grid(row=5, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=10)
+        output_frame.grid(row=7, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=10)
         
         # Output Text Area
         self.output_text = scrolledtext.ScrolledText(output_frame, wrap=tk.WORD, width=60, height=10)
@@ -105,11 +128,30 @@ class VideoGeneratorGUI:
         self.root.rowconfigure(0, weight=1)
         main_frame.columnconfigure(0, weight=1)
         main_frame.columnconfigure(1, weight=1)
-        main_frame.rowconfigure(5, weight=1)
+        main_frame.rowconfigure(7, weight=1)
         prompt_frame.rowconfigure(0, weight=1)
         output_frame.rowconfigure(0, weight=1)
         progress_frame.columnconfigure(0, weight=1)
+        self.image_frame.columnconfigure(1, weight=1)
         
+    def on_mode_change(self):
+        """Handle mode change between text-to-video and image-to-video"""
+        if self.mode_var.get() == "image":
+            self.image_frame.grid()
+            # Set aspect ratio to adaptive for image-to-video
+            self.ratio_var.set("adaptive")
+            # Disable aspect ratio selection
+            self.ratio_landscape.config(state="disabled")
+            self.ratio_portrait.config(state="disabled")
+        else:
+            self.image_frame.grid_remove()
+            # Re-enable aspect ratio selection
+            self.ratio_landscape.config(state="normal")
+            self.ratio_portrait.config(state="normal")
+            # Reset to default aspect ratio
+            if self.ratio_var.get() == "adaptive":
+                self.ratio_var.set("16:9")
+    
     def log_output(self, message):
         """Add message to output log"""
         self.output_text.insert(tk.END, f"{message}\n")
@@ -241,12 +283,14 @@ class VideoGeneratorGUI:
         """Video generation thread"""
         try:
             # Get parameters
+            mode = self.mode_var.get()
             ratio = self.ratio_var.get()
             resolution = self.resolution_var.get()
             duration = self.duration_var.get()
             
             # Build full prompt
             full_prompt = f"{prompt} --rt {ratio} --rs {resolution} --dur {duration}"
+            self.log_output(f"Mode: {'Image-to-Video' if mode == 'image' else 'Text-to-Video'}")
             self.log_output(f"Prompt: {full_prompt}")
             
             # Reset progress
@@ -259,12 +303,39 @@ class VideoGeneratorGUI:
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {self.api_key}"
             }
+            
+            # Build content array based on mode
+            content = [{"type": "text", "text": full_prompt}]
+            
+            if mode == "image":
+                image_url = self.image_url_var.get().strip()
+                if not image_url:
+                    raise Exception("Please provide an image URL for image-to-video mode")
+                
+                self.log_output(f"Image URL: {image_url}")
+                content.append({"type": "image_url", "image_url": {"url": image_url}})
+            
             data = {
                 "model": "doubao-seedance-1-0-pro-250528",
-                "content": [{"type": "text", "text": full_prompt}]
+                "content": content
             }
             
+            # Log the request data
+            self.log_output(f"Request URL: {url}")
+            self.log_output(f"Request Data: {data}")
+            
             response = requests.post(url, headers=headers, json=data)
+            
+            # Log the response details
+            self.log_output(f"Response Status Code: {response.status_code}")
+            self.log_output(f"Response Headers: {dict(response.headers)}")
+            
+            try:
+                result = response.json()
+                self.log_output(f"Response Body: {result}")
+            except:
+                self.log_output(f"Response Text: {response.text}")
+            
             response.raise_for_status()
             result = response.json()
             
